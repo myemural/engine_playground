@@ -11,16 +11,15 @@ oguzhan learns RT systems and engine subsystems
 Time Hierarchy:
 
 ┌─────────────────────────────┐
-│       ENGINE CORE           │
-│   (monotonic clock)         │
+│ ENGINE CORE │
+│ (monotonic clock) │
 ├─────────────────────────────┤
-│   SYSTEM SCHEDULING         │ 
-│   (tick / callback)         │
+│ SYSTEM SCHEDULING │
+│ (tick / callback) │
 ├─────────────────────────────┤
-│   SUBSYSTEMS                │
-│   Physics / Audio / Render  │
+│ SUBSYSTEMS │
+│ Physics / Audio / Render │
 └─────────────────────────────┘
-
 
 # LAB 1 — Engine Core / Time Ownership
 
