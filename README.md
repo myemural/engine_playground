@@ -58,6 +58,17 @@ Instead, it analytically computes the time of impact between objects over a fixe
 ## Thread model
   Audio runs on the different thread than other systems. Because, for the real time systems, we do not want any loss of time like cache miss or an unbounded operation.Audio is isolated on its own thread to guarantee bounded execution time and avoid interference from cache misses, locks, or unbounded operations in other systems.
 ## Common pitfalls
+Time → | | | | | | | | | | |  
+ 0 1 2 3 4 5 6 7 8 9 10  
+Engine Core:| | | | | | | | | | |
+0 1 2 3 4 5 6 7 8 9 10
+Physics: | | | | | | | | | | | | |  
+ 0 1 2 3 4 5 6 7 8 9 10 11 12
+Render: | | | | | | | | | | | | | | | | | | | | | | | | |
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24  
+Audio: | . . . . |. . . . .| . . . . |. . . . .| . . . . |. . . . .| . . . . |. . . . .| . . . . |. . . . .|
+0 1 2 3 4 5 6 7 8 9 10
+48 kHz sample ticks (buffered callbacks)
 
 ## What this lab does NOT do
   This is just an experimental LAB to see the different type of systems. It is NOT a product.
@@ -81,6 +92,8 @@ Render:     |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   
 Audio:      | . . . . |. . . . .| . . . . |. . . . .| . . . . |. . . . .| . . . . |. . . . .| . . . . |. . . . .|
             0         1         2         3         4         5         6         7         8         9         10
               48 kHz sample ticks (buffered callbacks)
+
+              
 Audio does not depend on engine core
 Physics needs accumulator
 render needs interpolation
