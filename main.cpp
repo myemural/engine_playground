@@ -14,17 +14,27 @@ int main() {
     PhysicsWorld world(physics_dt);
     physics_world_variable world_variable(physics_dt);
 
+    //collision scenario
+    double wall_x = 10;
+    double x_old = 0.0;
+
     auto last = engine::now();
 
-    for (int frame = 0; frame < 60; ++frame) {
+    for (int frame = 0; frame < 300; ++frame) {
         auto now = engine::now();
         std::chrono::duration<double> frame_dt = now - last;
         last = now;
         int base_ms = 16; // ~60 FPS
         int jitter = jitter_ms(rng); // simulation of unsteady frame pacing
+        x_old = world.position() ? world.position() : 0.0;
 
         world.update(frame_dt.count());
         world_variable.update(frame_dt.count());
+
+        if (x_old < wall_x && world.position() >= wall_x) {
+            std::cout << "Collision occured" << '\n';
+        }
+
         std::cout << "--------Fixed timestep--------" << '\n';
         std::cout << "Frame: " << frame
                   << " | Physics steps: "
