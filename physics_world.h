@@ -7,6 +7,8 @@
 #include <cstdint>
 #include "physics_state.h"
 
+extern double wall_x;
+
 class PhysicsWorld {
 public:
     explicit PhysicsWorld(double fixed_dt_seconds);
@@ -15,14 +17,23 @@ public:
 
     std::uint64_t step_count() const noexcept;
 
+    bool solve_toi_accel(double x0, double v0, double a, double wall_x, double dt, double &t_hit);
+
     double position() const;
 
     double velocity() const;
 
+    const PhysicsState& current() const;
+
+    const PhysicsState& previous() const;
+
 private:
     void step(); // one fixed physics step
 
-private:
+    void step(double dt);
+
+    PhysicsState m_prev;
+    PhysicsState m_curr;
     PhysicsState m_state;
     const double m_fixed_dt;
     double m_accumulator = 0.0;

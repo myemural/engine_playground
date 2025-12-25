@@ -8,6 +8,7 @@
 
 std::mt19937 rng{std::random_device{}()};
 std::uniform_int_distribution<int> jitter_ms(-5, 5);
+double wall_x = 10;
 
 int main() {
     constexpr double physics_dt = 1.0 / 60.0; // 60 Hz physics
@@ -15,7 +16,6 @@ int main() {
     physics_world_variable world_variable(physics_dt);
 
     //collision scenario
-    double wall_x = 10;
     double x_old = 0.0;
 
     auto last = engine::now();
@@ -31,10 +31,7 @@ int main() {
         world.update(frame_dt.count());
         world_variable.update(frame_dt.count());
 
-        if (x_old < wall_x && world.position() >= wall_x) {
-            std::cout << "Collision occured" << '\n';
-        }
-
+/*
         std::cout << "--------Fixed timestep--------" << '\n';
         std::cout << "Frame: " << frame
                   << " | Physics steps: "
@@ -47,6 +44,19 @@ int main() {
                   << " | Physics steps: "
                   << world_variable.step_count() << '\n';
         std::cout << frame << ", " << world_variable.velocity() << ", " << world_variable.position() << "\n";
+*/
+
+        const auto& prev = world.previous();
+        const auto& curr = world.current();
+
+        std::cout << "Frame " << frame
+                  << " | Physics steps: " << world.step_count() << "\n";
+
+        std::cout << "  PREV: x=" << prev.position
+                  << " v=" << prev.velocity << "\n";
+
+        std::cout << "  CURR: x=" << curr.position
+                  << " v=" << curr.velocity << "\n";
 
 
         std::this_thread::sleep_for(std::chrono::milliseconds(base_ms + jitter));
