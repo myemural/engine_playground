@@ -46,7 +46,18 @@ void PhysicsWorld::step() {
 }
 
 void PhysicsWorld::step(double dt) {
+
+    // if (!(m_curr.velocity && m_curr.acceleration)) {
+    //     // sleeping body -> no-op
+    //     return;
+    // }
     m_prev = m_curr;
+    if ((wall_x - m_curr.position) < m_curr.velocity*dt ) {
+        step_with_ccd(dt);
+    } else {
+        Integrator::semi_implicit_euler(m_curr,dt);
+    }
+   /* m_prev = m_curr;
 
     const double x0 = m_curr.position;
     const double v0 = m_curr.velocity;
@@ -83,13 +94,58 @@ void PhysicsWorld::step(double dt) {
     }
 
     ++m_steps;
-    m_curr.velocity += m_curr.acceleration * dt;
+    m_curr.velocity += m_curr.acceleration * dt;*/
+    ++m_steps;
 }
 
 const PhysicsState& PhysicsWorld::current() const { return m_curr; }
 const PhysicsState& PhysicsWorld::previous() const { return m_prev; }
 
+void PhysicsWorld::step_with_ccd(double dt) {
+    // Snapshot for render + replay
+
+    // Calculate the TOI
+    const HitInfo hit = compute_toi(m_curr, dt);
+
+    if (!hit.hit()) {
+        Integrator::semi_implicit_euler(m_curr, dt);
+        return;
+    }
+
+    // Iterate until the collision
+    Integrator::semi_implicit_euler(m_curr, hit.time());
+
+    // Collision response
+    resolve_collision(m_curr, hit);
+
+    //Iterate the remaining
+    double remaining = dt - hit.time();
+    Integrator::semi_implicit_euler(m_curr, remaining);
+
+}
+
 
 std::uint64_t PhysicsWorld::step_count() const noexcept {
     return m_steps;
 }
+
+HitInfo PhysicsWorld::compute_toi(PhysicsState m_curr, double dt) {
+    const double x0 = m_curr.position;
+    const double v0 = m_curr.velocity;
+    HitInfo hit;
+
+    if (v0 > 0.0 && x0 < wall_x) {
+        const double t = (wall_x - x0) / v0;
+        if (t >= 0.0 && t <= dt) {
+            hit.hit(true);
+            hit.time(t);
+        }
+    }
+    return hit;
+}
+
+
+void PhysicsWorld::resolve_collision(PhysicsState &m_curr, HitInfo hit ) {
+    m_curr.velocity = -m_curr.velocity;
+}
+

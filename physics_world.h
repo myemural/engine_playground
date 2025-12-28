@@ -5,6 +5,8 @@
 #ifndef PHYSICS_WORLD_H
 #define PHYSICS_WORLD_H
 #include <cstdint>
+
+#include "HitInfo.h"
 #include "physics_state.h"
 
 extern double wall_x;
@@ -27,10 +29,16 @@ public:
 
     const PhysicsState& previous() const;
 
+    HitInfo compute_toi(PhysicsState, double);
+
 private:
     void step(); // one fixed physics step
 
     void step(double dt);
+
+    void step_with_ccd(double dt);
+
+    void resolve_collision(PhysicsState&, HitInfo);
 
     PhysicsState m_prev;
     PhysicsState m_curr;
