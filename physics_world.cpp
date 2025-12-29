@@ -3,6 +3,7 @@
 //
 // Simulation for fixed timestep
 #include "physics_world.h"
+#include "render_console.h"
 
 #include <complex>
 #include <iostream>
@@ -55,6 +56,7 @@ void PhysicsWorld::step(double dt) {
     if ((wall_x - m_curr.position) < m_curr.velocity*dt ) {
         step_with_ccd(dt);
     } else {
+        hit.hit(false);
         Integrator::semi_implicit_euler(m_curr,dt);
     }
     ++m_steps;
@@ -94,7 +96,6 @@ std::uint64_t PhysicsWorld::step_count() const noexcept {
 HitInfo PhysicsWorld::compute_toi(PhysicsState &m_curr, double dt) {
     const double x0 = m_curr.position;
     const double v0 = m_curr.velocity;
-    HitInfo hit;
 
     if (v0 > 0.0 && x0 < wall_x) {
         const double t = (wall_x - x0) / v0;
@@ -118,7 +119,6 @@ HitInfo PhysicsWorld::compute_toi_quad(PhysicsState& m_curr, double dt) {
     double r1 = 0.0;
     double r2 = 0.0;
     double discriminant = v0*v0 - 4 * (x0-wall_x) * a/2;
-    HitInfo hit;
 
     if (v0 > 0.0 && x0 < wall_x) {
         double t_hit = 0.0;
@@ -130,4 +130,16 @@ HitInfo PhysicsWorld::compute_toi_quad(PhysicsState& m_curr, double dt) {
         hit.hit(true);
     }
     return hit;
+}
+
+bool PhysicsWorld::check_collision() const {
+    return hit.hit();
+}
+
+double PhysicsWorld::accumulator() const {
+    return m_accumulator;
+}
+
+double PhysicsWorld::collision_time() const {
+    return hit.time();
 }

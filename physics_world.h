@@ -31,6 +31,12 @@ public:
 
     HitInfo compute_toi(PhysicsState&, double);
 
+    double accumulator() const;
+
+    bool check_collision() const;
+
+    double collision_time() const;
+
 private:
     void step(); // one fixed physics step
 
@@ -46,6 +52,7 @@ private:
     const double m_fixed_dt;
     double m_accumulator = 0.0;
     std::uint64_t m_steps = 0;
+    HitInfo hit;
 };
 
 
