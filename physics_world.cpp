@@ -13,16 +13,6 @@
 PhysicsWorld::PhysicsWorld(double fixed_dt_seconds)
     : m_fixed_dt(fixed_dt_seconds) {}
 
-/*
-void PhysicsWorld::update(const double frame_dt_seconds) {
-    m_accumulator += frame_dt_seconds;
-
-    while (m_accumulator >= m_fixed_dt) {
-        step();
-        m_accumulator -= m_fixed_dt;
-    }
-}
-*/
 
 void PhysicsWorld::update(const double frame_dt_seconds) {
     m_accumulator += frame_dt_seconds;
@@ -121,7 +111,7 @@ HitInfo PhysicsWorld::compute_toi_quad(PhysicsState& m_curr, double dt) {
     double discriminant = v0*v0 - 4 * (x0-wall_x) * a/2;
 
     if (v0 > 0.0 && x0 < wall_x) {
-        double t_hit = 0.0;
+        double t_hit = std::numeric_limits<double>::max();
         r1 = (-v0 + sqrt(discriminant))/(2*a);
         r2 = (-v0 - sqrt(discriminant))/(2*a);
         if (r1 > 0.0 && r1 <= dt) t_hit = r1;
