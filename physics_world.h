@@ -19,8 +19,6 @@ public:
 
     std::uint64_t step_count() const noexcept;
 
-    HitInfo compute_toi_quad(PhysicsState&, double);
-
     double position() const;
 
     double velocity() const;
