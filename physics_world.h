@@ -45,6 +45,8 @@ public:
 
     const HitInfo& getHit() const;
 
+    void sync_1d_to_2d();
+
 private:
     PhysicsState m_prev;
     PhysicsState m_curr;

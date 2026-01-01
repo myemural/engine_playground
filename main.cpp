@@ -35,15 +35,15 @@ int main() {
 
         const double alpha = world.accumulator()/frame_dt.count();
         const double render_x =
-            interpolate(world.previous().position,
-                        world.current().position,
+            interpolate(world.previous().position2d.x,
+                        world.current().position2d.x,
                         alpha);
 
         render_console(render_x, wall_x);
 
         // Debug
         collision_global_time = simulation_time - frame_dt.count() + world.collision_time();
-        collision_position = world.current().acceleration * collision_global_time * collision_global_time / 2;
+        collision_position = world.current().acceleration2d.x * collision_global_time * collision_global_time / 2;
         //Edge triggered collision check
         if (world.check_collision() && !prev_hit) {
             std::cout << "\n[CCD] collision at x=" << collision_position

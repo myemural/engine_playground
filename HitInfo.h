@@ -30,6 +30,4 @@ public:
     void setContactNormal(const Vec2& n);
 };
 
-
-
 #endif //HIT_INFO_H

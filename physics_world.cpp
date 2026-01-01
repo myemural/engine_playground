@@ -31,17 +31,13 @@ double PhysicsWorld::velocity() const {
     return m_state.velocity;
 }
 
-void PhysicsWorld::step() {
-    Integrator::semi_implicit_euler(m_state, m_fixed_dt);
-    ++m_steps;
-}
-
 void PhysicsWorld::step(double dt) {
 
     if ((m_curr.acceleration == 0.0) && (m_curr.velocity == 0.0)) {
         // sleeping body -> no-op
         return;
     }
+    sync_1d_to_2d();
     m_prev = m_curr;
     if ((wall_x - m_curr.position) < m_curr.velocity*dt ) {
         step_with_ccd(dt);
@@ -128,4 +124,12 @@ double PhysicsWorld::collision_time() const {
 
 const HitInfo& PhysicsWorld::getHit() const {
     return hit;
+}
+
+void PhysicsWorld::sync_1d_to_2d() {
+    m_curr.position2d.x = m_curr.position;
+    m_curr.position2d.y = 0.0;
+
+    m_curr.velocity2d.x = m_curr.velocity;
+    m_curr.velocity2d.y = 0.0;
 }
