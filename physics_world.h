@@ -5,11 +5,12 @@
 #ifndef PHYSICS_WORLD_H
 #define PHYSICS_WORLD_H
 #include <cstdint>
+#include <iosfwd>
+#include <vector>
 
-#include "HitInfo.h"
 #include "physics_state.h"
-
-extern double wall_x;
+#include "body.h"
+#include "contact_manifold.h"
 
 class PhysicsWorld {
 public:
@@ -17,42 +18,29 @@ public:
 
     void update(double frame_dt_seconds);
 
+    void fixed_step(double dt);
+
     std::uint64_t step_count() const noexcept;
+
+    void step_bodies_with_ccd(double dt, std::vector<ContactManifold> &manifolds);
 
     Vec2 position() const;
 
     Vec2 velocity() const;
 
-    const PhysicsState& current() const;
-
-    const PhysicsState& previous() const;
-
-    HitInfo compute_toi(PhysicsState&, double);
-
     double accumulator() const;
 
-    bool check_collision() const;
+    void step_bodies(double dt);
 
-    double collision_time() const;
+    const std::vector<ContactManifold>& getManifolds() const;
 
-    void step(); // one fixed physics step
-
-    void step(double dt);
-
-    void step_with_ccd(double dt);
-
-    void resolve_collision(PhysicsState&, HitInfo);
-
-    const HitInfo& getHit() const;
+    std::vector<Body> bodies;
 
 private:
-    PhysicsState m_prev;
-    PhysicsState m_curr;
-    PhysicsState m_state;
+    std::vector<ContactManifold> manifolds;
     const double m_fixed_dt;
     double m_accumulator = 0.0;
     std::uint64_t m_steps = 0;
-    HitInfo hit;
 };
 
 

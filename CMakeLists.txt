@@ -13,10 +13,7 @@ endif()
 add_executable(engineloop
         physics_world.cpp
         Integrator.cpp
-        physics_world_variable.cpp
-        HitInfo.cpp
         render_console.cpp
-        World.cpp
         main.cpp
 )
 

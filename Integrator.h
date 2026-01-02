@@ -4,12 +4,12 @@
 
 #ifndef INTEGRATOR_H
 #define INTEGRATOR_H
-#include "physics_state.h"
+#include "body.h"
 
 
 struct Integrator {
     static void semi_implicit_euler(
-        PhysicsState& state,
+        Body& b,
         double dt
     );
 };
