@@ -20,7 +20,16 @@
 PhysicsWorld::PhysicsWorld(double fixed_dt_seconds)
     : m_fixed_dt(fixed_dt_seconds) {}
 
+void PhysicsWorld::update_kinematics(double dt) {
+    for (Body& b : bodies) {
+        if (b.type == BodyType::Kinematic) {
+            b.position += b.velocity * dt;
+        }
+    }
+}
+
 void PhysicsWorld::update(const double frame_dt_seconds) {
+    update_kinematics(frame_dt_seconds);
     m_accumulator += frame_dt_seconds;
 
     while (m_accumulator >= m_fixed_dt) {
@@ -43,20 +52,22 @@ struct TOIResult {
     double t = 0.0;
 };
 
-static TOIResult compute_toi_1d(double x0, double v0, double a, double wall_x, double dt) {
+static TOIResult compute_toi_1d(double x0, double v0, double a, double dt) {
     TOIResult r;
 
     if (a == 0.0) {
-        if (v0 > 0.0 && x0 < wall_x) {
-            double t = (wall_x - x0) / v0;
-            if (t >= 0.0 && t <= dt) { r.hit = true; r.t = t; }
+        if (v0 < 0.0) return r;
+        double t = -x0 / v0;
+        if (t >= 0.0 && t <= dt) {
+            r.hit = true;
+            r.t = t;
         }
         return r;
     }
 
     double A = 0.5 * a;
     double B = v0;
-    double C = (x0 - wall_x);
+    double C = x0;
 
     double disc = B*B - 4*A*C;
     if (disc < 0.0) return r;
@@ -73,73 +84,76 @@ static TOIResult compute_toi_1d(double x0, double v0, double a, double wall_x, d
     return r;
 }
 
-void PhysicsWorld::step_bodies_with_ccd(double dt, std::vector<ContactManifold>& manifolds) {
+void PhysicsWorld::step_bodies_with_ccd(
+    double dt,
+    std::vector<ContactManifold>& manifolds
+) {
     manifolds.clear();
 
-    Body& wall = bodies[1]; // invMass=0
+    Body& wall = bodies[1]; // Kinematic or Static
+
     for (Body& b : bodies) {
-        if (b.invMass == 0.0) continue; // static body
+        if (b.type != BodyType::Dynamic)
+            continue;
+
 
         std::cout
-        << "x=" << b.position.x
-        << " vx=" << b.velocity.x
-        << " ax=" << b.acceleration.x
-        << "y=" << b.position.y
-        << " vy=" << b.velocity.y
-        << " ay=" << b.acceleration.y
-        << " wall=" << wall.position.x
-        << " dt=" << dt
+        << "step=" << m_steps
+        << " xA=" << b.position.x
+        << " xB=" << wall.position.x
+        << " yA=" << b.position.y
+        << " yB=" << wall.position.y
+        << " vA=" << b.velocity.x
+        << " vB=" << wall.velocity.x
         << "\n";
 
+        // --- RELATIVE MOTION ---
+        double x0 = b.position.x - wall.position.x;
+        double v0 = b.velocity.x - wall.velocity.x;
+        double a  = b.acceleration.x;
 
-        // CCD check for only one dimension
-        auto toi = compute_toi_1d(b.position.x, b.velocity.x,
-            b.acceleration.x, wall.position.x, dt);
+        auto toi = compute_toi_1d(x0, v0, a, dt);
 
         if (toi.hit) {
             double t = toi.t;
-            double x0 = b.position.x;
-            double v0 = b.velocity.x;
-            double a  = b.acceleration.x;
 
-            b.position.x = x0 + v0*t + 0.5*a*t*t;
-            b.velocity.x = v0 + a*t;
+            // integrate dynamic until TOI
+            b.position.x += b.velocity.x * t + 0.5 * a * t * t;
+            b.velocity.x += a * t;
 
             b.velocity.y += b.acceleration.y * t;
             b.position.y += b.velocity.y * t;
 
-            // CCD Contact -> Manifold
-            // Contact Manifold does not check the instantaneous hit, it counts the active contacts.
+            // --- CCD contact manifold ---
             ContactManifold m;
             m.bodyA = b.id;
             m.bodyB = wall.id;
             m.pointCount = 1;
-            m.points[0].position = { wall.position.x , b.position.y };
             m.points[0].normal = { -1.0, 0.0 };
+            m.points[0].position = {
+                wall.position.x,
+                b.position.y
+            };
             m.points[0].penetration = 0.0;
-            manifolds.push_back(m);
 
-            //       b.velocity.x = -b.velocity.x;
+            merge_manifold(manifolds, m);
 
-            std::cout << "toi.hit=" << toi.hit << " toi.t=" << toi.t << "\n";
-
+            // remaining time
             double remaining = dt - t;
-            Integrator::semi_implicit_euler(b,remaining);
+            Integrator::semi_implicit_euler(b, remaining);
         }
         else {
-            Integrator::semi_implicit_euler(b,dt);
+            Integrator::semi_implicit_euler(b, dt);
         }
+
+        // --- DISCRETE CONTACT (STAYING CONTACT) ---
         ContactManifold m;
         if (discrete_wall_contact(b, wall, m)) {
-            std::cout << "DISCRETE HIT: x=" << b.position.x
-              << " wall=" << wall.position.x
-              << " pen=" << m.points[0].penetration << "\n";
             merge_manifold(manifolds, m);
         }
     }
-    std::cout << "AFTER STEP manifolds=" << manifolds.size() << "\n";
-
 }
+
 
 Vec2 PhysicsWorld::position() const {
     return bodies.empty() ? Vec2{} : bodies[0].position;
@@ -149,11 +163,6 @@ Vec2 PhysicsWorld::velocity() const {
     return bodies.empty() ? Vec2{} : bodies[0].velocity;
 }
 
-void PhysicsWorld::step_bodies(double dt) {
-    for (Body& b : bodies) {
-        Integrator::semi_implicit_euler(b,dt);
-    }
-}
 std::uint64_t PhysicsWorld::step_count() const noexcept {
     return m_steps;
 }
@@ -242,39 +251,33 @@ void PhysicsWorld::solve_contacts(double dt, double restitution) {
             if (b.id == m.bodyB) B = &b;
         }
         if (!A || !B) continue;
-        if (A->invMass == 0.0) continue;
+        if (A->type != BodyType::Dynamic) continue;
 
         ContactPoint& cp = m.points[0];
-
         const Vec2 n = cp.normal;
         Vec2 t = { -n.y, n.x };
 
-        Vec2 vrel = A->velocity;   // wall static
+        // --- RELATIVE VELOCITY ---
+        Vec2 vrel = A->velocity;
+        if (B->type == BodyType::Kinematic)
+            vrel -= B->velocity;
 
-        // -------------------
-        // NORMAL IMPULSE (ACCUMULATED)
-        // -------------------
         double vn = vrel.dot(n);
+        if (vn >= 0.0) continue;
 
-        double dPn = -(vn) / A->invMass;
+        double dPn = -vn / A->invMass;
         double Pn0 = cp.Pn;
-
         cp.Pn = std::max(Pn0 + dPn, 0.0);
         dPn = cp.Pn - Pn0;
 
         A->velocity += n * (dPn * A->invMass);
-
-        // -------------------
-        // FRICTION IMPULSE (ACCUMULATED)
-        // -------------------
+        
         double vt = vrel.dot(t);
-
-        double dPt = -(vt) / A->invMass;
+        double dPt = -vt / A->invMass;
         double Pt0 = cp.Pt;
 
-        double mu = 0.5; // friction constant
+        double mu = 0.5;
         double maxPt = mu * cp.Pn;
-
         cp.Pt = std::clamp(Pt0 + dPt, -maxPt, maxPt);
         dPt = cp.Pt - Pt0;
 

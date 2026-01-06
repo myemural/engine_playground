@@ -12,9 +12,19 @@ struct Vec2 {
     Vec2() = default;
     Vec2(double x_, double y_) : x(x_), y(y_) {}
 
+    Vec2& operator+(Vec2& rhs) {
+        x += rhs.x;
+        y += rhs.y;
+        return *this;
+    }
     Vec2& operator+=(const Vec2& rhs) {
         x += rhs.x;
         y += rhs.y;
+        return *this;
+    }
+    Vec2& operator-(Vec2& rhs) {
+        x -= rhs.x;
+        y -= rhs.y;
         return *this;
     }
     Vec2& operator-=(const Vec2& rhs) {

@@ -22,22 +22,24 @@ int main() {
 
     Body b;
     b.id = 0;
-    b.position = {0.0, 0.0};
-    b.velocity = {0.0, 1.0};
-    b.acceleration = {5.0, 5.0};
+    b.type = BodyType::Dynamic;
+    b.position = {5.0, 1.0};
+    b.velocity = {2.0, 0.0};
+    b.acceleration = {0.0,-9.8};
     b.invMass = 1.0;
 
     Body wall;
     wall.id = 1;
-    wall.position = { 10.0, 0.0 };
-    wall.velocity = { 0.0, 0.0 };
+    wall.type = BodyType::Kinematic;
+    wall.position = { 5.0, 0.0 };
+    wall.velocity = { 2.0, 0.0 };
     wall.acceleration = { 0.0, 0.0 };
     wall.invMass = 0.0; // static
 
     world.getBodies().push_back(b);
     world.getBodies().push_back(wall);
 
-    for (int frame = 0; frame < 150; ++frame) {
+    for (int frame = 0; frame < 300; ++frame) {
         auto now = engine::now();
         std::chrono::duration<double> frame_dt = now - last;
         last = now;

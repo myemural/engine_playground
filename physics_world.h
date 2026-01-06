@@ -16,6 +16,8 @@ class PhysicsWorld {
 public:
     explicit PhysicsWorld(double fixed_dt_seconds);
 
+    void update_kinematics(double dt);
+
     void update(double frame_dt_seconds);
 
     void fixed_step(double dt);
@@ -29,8 +31,6 @@ public:
     Vec2 velocity() const;
 
     double accumulator() const;
-
-    void step_bodies(double dt);
 
     void solve_contacts(double dt, double restitution);
 

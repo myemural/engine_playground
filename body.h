@@ -7,11 +7,18 @@
 #include "vec2.h"
 #include <cstdint>
 
+enum class BodyType {
+    Dynamic,
+    Static,
+    Kinematic
+};
+
 using BodyID = uint32_t;
 
 struct Body {
     BodyID id;
-    Vec2 position {0.0 ,0.0};
+    BodyType type;
+    Vec2 position{0.0, 0.0};
     Vec2 velocity {0.0 ,0.0};
     Vec2 acceleration {0.0 ,0.0};
     Vec2 pseudoVelocity = {0.0, 0.0};
