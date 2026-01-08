@@ -23,16 +23,16 @@ int main() {
     Body b;
     b.id = 0;
     b.type = BodyType::Dynamic;
-    b.position = {5.0, 1.0};
-    b.velocity = {2.0, 0.0};
+    b.position = {0.0, 1.0};
+    b.velocity = {0.0, 0.0};
     b.acceleration = {0.0,-9.8};
     b.invMass = 1.0;
 
     Body wall;
     wall.id = 1;
     wall.type = BodyType::Kinematic;
-    wall.position = { 5.0, 0.0 };
-    wall.velocity = { 2.0, 0.0 };
+    wall.position = { 0.0, 0.0 };
+    wall.velocity = { 0.0, 0.0 };
     wall.acceleration = { 0.0, 0.0 };
     wall.invMass = 0.0; // static
 

@@ -53,6 +53,24 @@ struct TOIResult {
 };
 
 static TOIResult compute_toi_1d(double x0, double v0, double a, double dt) {
+
+    if (std::abs(v0) < PhysicsWorld::eps && std::abs(x0) < PhysicsWorld::slop) {
+        return { false, 0.0}; // no hit, resting contact
+    }
+
+    // a == 0 case
+    if (std::abs(a) < PhysicsWorld::eps) {
+        if (std::abs(v0) < PhysicsWorld::eps)
+            return { false, 0.0 };   // prevents 0/0
+
+        double t = -x0 / v0;
+        if (t >= 0.0 && t <= dt)
+            return { true, t };
+
+        return { false, 0.0 };
+    }
+
+
     TOIResult r;
 
     if (a == 0.0) {
@@ -70,11 +88,15 @@ static TOIResult compute_toi_1d(double x0, double v0, double a, double dt) {
     double C = x0;
 
     double disc = B*B - 4*A*C;
-    if (disc < 0.0) return r;
+    if (disc < 0.0 || !std::isfinite(disc))
+        return {false, 0.0};
 
     double s = std::sqrt(disc);
     double t1 = (-B + s) / (2*A);
     double t2 = (-B - s) / (2*A);
+
+    if (!std::isfinite(t1) || !std::isfinite(t2))
+        return {false, 0.0};
 
     double t_hit = std::numeric_limits<double>::infinity();
     if (t1 > 0.0 && t1 <= dt) t_hit = t1;
@@ -111,6 +133,32 @@ void PhysicsWorld::step_bodies_with_ccd(
         double x0 = b.position.x - wall.position.x;
         double v0 = b.velocity.x - wall.velocity.x;
         double a  = b.acceleration.x;
+
+        if (x0 <= slop) {
+            // resting or penetrating
+            ContactManifold m;
+            if (discrete_wall_contact(b, wall, m)) {
+                merge_manifold(manifolds, m);
+            }
+            b.position.y += b.velocity.y * dt;
+            b.velocity.y += b.acceleration.y * dt;
+            continue;
+        }
+
+        if (std::abs(v0) < eps) {
+            Integrator::semi_implicit_euler(b, dt);
+            continue;
+        }
+
+        if (v0 >= 0.0) {
+            Integrator::semi_implicit_euler(b, dt);
+            continue;
+        }
+
+        if (!std::isfinite(x0) || !std::isfinite(v0)) {
+            std::cout << "INVALID RELATIVE STATE\n";
+            continue;
+        }
 
         auto toi = compute_toi_1d(x0, v0, a, dt);
 
@@ -190,8 +238,6 @@ bool PhysicsWorld::discrete_wall_contact(
     const Body& wall,
     ContactManifold& out
 ) {
-    constexpr double slop = 0.001;
-
 
     double distance = wall.position.x - b.position.x;
 
@@ -241,8 +287,11 @@ void PhysicsWorld::merge_manifold(
 
 void PhysicsWorld::solve_contacts(double dt, double restitution) {
 
+
     for (ContactManifold& m : manifolds) {
 
+        if (m.pointCount == 0)
+            continue;
         Body* A = nullptr;
         Body* B = nullptr;
 
