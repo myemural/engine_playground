@@ -161,6 +161,11 @@ void PhysicsWorld::step_bodies_with_ccd(
             continue;
         }
 
+        if (!std::isfinite(x0) || !std::isfinite(v0)) {
+            std::cout << "INVALID RELATIVE STATE\n";
+            continue;
+        }
+
         auto toi = compute_toi_1d(x0, v0, a, dt);
 
         if (toi.hit) {

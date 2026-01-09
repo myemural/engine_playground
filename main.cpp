@@ -23,9 +23,9 @@ int main() {
     Body b;
     b.id = 0;
     b.type = BodyType::Dynamic;
-    b.position = {0.0, 1.0};
-    b.velocity = {0.0, 0.0};
-    b.acceleration = {0.0,-9.8};
+    b.position = {0.0, 0.0};
+    b.velocity = {5.0, 0.0};
+    b.acceleration = {9.8,9.8};
     b.invMass = 1.0;
 
     Body wall;
@@ -39,7 +39,7 @@ int main() {
     world.getBodies().push_back(b);
     world.getBodies().push_back(wall);
 
-    for (int frame = 0; frame < 300; ++frame) {
+    for (int frame = 0; frame < 150; ++frame) {
         auto now = engine::now();
         std::chrono::duration<float> frame_dt = now - last;
         last = now;
