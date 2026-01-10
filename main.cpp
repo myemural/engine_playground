@@ -14,7 +14,18 @@ float collision_global_time;
 float collision_position;
 bool prev_hit;
 
-int main() {
+int run_sdl_smoke_test();
+
+int main()
+{
+    int rc = run_sdl_smoke_test();
+    if (rc != 0) {
+        std::cout << "SDL smoke test failed code= " << rc << '\n';
+        return rc;
+    }
+
+    std::cout << "SDL smoke test passed\n";
+
     constexpr float physics_dt = 1.0f / 60.0f; // 60 Hz physics
     PhysicsWorld world(physics_dt);
 
@@ -23,9 +34,9 @@ int main() {
     Body b;
     b.id = 0;
     b.type = BodyType::Dynamic;
-    b.position = {0.0, 0.0};
+    b.position = {0.0, 5.0};
     b.velocity = {5.0, 0.0};
-    b.acceleration = {9.8,-9.8};
+    b.acceleration = {9.8,-9.0};
     b.invMass = 1.0;
 
     Body wall;

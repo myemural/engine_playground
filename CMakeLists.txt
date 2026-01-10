@@ -10,11 +10,19 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+find_package(SDL2 REQUIRED)
+
 add_executable(engineloop
         physics_world.cpp
         Integrator.cpp
         render_console.cpp
         main.cpp
+        sdl_smoke_test.cpp
+)
+
+target_link_libraries(engineloop
+        PRIVATE
+        SDL2::SDL2
 )
 
 target_include_directories(engineloop PRIVATE external/glm)
