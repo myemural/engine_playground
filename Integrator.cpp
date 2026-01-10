@@ -20,6 +20,6 @@ void Integrator::integrateY(Body& b, float dt) {
     else
     {
         b.velocity.y += b.acceleration.y * dt;
-        b.position.y  += b.velocity.y * dt;
+        b.position.y += b.velocity.y * dt;
     }
 }

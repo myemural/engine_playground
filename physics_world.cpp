@@ -53,8 +53,6 @@ void resolveGroundVelocity(Body& b) {
 }
 
 void PhysicsWorld::solveY(Body& b, float dt) {
-    Integrator::integrateY(b, dt);
-
     if (collidesWithGround(b)) {
         resolveGroundPenetration(b);
         resolveGroundVelocity(b);
@@ -62,6 +60,7 @@ void PhysicsWorld::solveY(Body& b, float dt) {
     } else {
         b.onGround = false;
     }
+    Integrator::integrateY(b, dt);
 }
 
 
@@ -174,8 +173,6 @@ void PhysicsWorld::step_bodies_with_ccd(
             continue;
         }
 
-        solveY(b,dt);
-
         auto toi = compute_toi_1d(x0, v0, a, dt);
 
         if (toi.hit) {
@@ -206,6 +203,7 @@ void PhysicsWorld::step_bodies_with_ccd(
             Integrator::semi_implicit_euler(b, dt);
         }
 
+        solveY(b,dt);
         // --- DISCRETE CONTACT (STAYING CONTACT) ---
         ContactManifold m;
         if (discrete_wall_contact(b, wall, m)) {
