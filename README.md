@@ -3,7 +3,6 @@
 # Quick Setup Guide
 
 This is a **minimal setup guide** for first-time users.
-It only covers cloning the repository, initializing submodules, and installing SDL2.
 
 ```
 Clone the Repository:
