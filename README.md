@@ -1,6 +1,35 @@
 # engine_playground
 ---
-oguzhan learns RT systems and engine subsystems
+# Quick Setup Guide
+
+This is a **minimal setup guide** for first-time users.
+It only covers cloning the repository, initializing submodules, and installing SDL2.
+
+```
+Clone the Repository:
+git clone https://github.com/oguzhanduguncu/engine_playground.git
+cd engine_playground
+Initialize Submodules:
+git submodule update --init --recursive
+Install SDL2:
+Linux (Ubuntu / Debian):
+sudo apt update
+sudo apt install -y libsdl2-dev
+Windows (vcpkg – recommended):
+git clone https://github.com/microsoft/vcpkg.git
+cd vcpkg
+.\bootstrap-vcpkg.bat
+.\vcpkg install sdl2
+Configure CMake with vcpkg:
+cmake -B build -S . ^
+  -DCMAKE_TOOLCHAIN_FILE=C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake
+Build:
+mkdir build
+cd build
+cmake ..
+cmake --build .
+
+```
 ---
 # Engine Playground
 
