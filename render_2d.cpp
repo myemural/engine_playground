@@ -86,35 +86,8 @@ void render_2d::shutdown()
 
 void render_2d::handleEvents()
 {
-    SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT) {
-            m_running = false;
-        }
-        else if (e.type == SDL_WINDOWEVENT &&
-                 e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+    SDL_PumpEvents();
 
-            handleResize();
-        }
-    }
-}
-
-void render_2d::handleResize()
-{
-    if (m_renderer) {
-        SDL_DestroyRenderer(m_renderer);
-        m_renderer = nullptr;
-    }
-
-    m_renderer = SDL_CreateRenderer(
-        m_window,
-        -1,
-        SDL_RENDERER_SOFTWARE
-    );
-
-    SDL_RenderSetLogicalSize(m_renderer, 0, 0);
-    SDL_RenderSetScale(m_renderer, 1.0f, 1.0f);
-    SDL_RenderSetViewport(m_renderer, nullptr);
 }
 
 void render_2d::render(PhysicsWorld& world)

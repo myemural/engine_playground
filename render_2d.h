@@ -26,8 +26,6 @@ private:
     void init(int width, int height);
     void shutdown();
 
-    void handleResize();
-
     SDL_Window* m_window   = nullptr;
     SDL_Renderer* m_renderer = nullptr;
 
